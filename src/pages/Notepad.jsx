@@ -1,9 +1,20 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import MenuBar from '../components/notepad/MenuBar'
 import TextEditor from '../components/notepad/TextEditor'
+import { getNode, updateContent } from '../utils/filesystem'
 
-const Notepad = () => {
-  const [text, setText] = useState('')
+const Notepad = ({ fileId = null }) => {
+  // When opened from a desktop text file, load its saved content.
+  const [text, setText] = useState(() =>
+    fileId ? getNode(fileId)?.content ?? '' : ''
+  )
+
+  // Persist edits back to the file in localStorage.
+  useEffect(() => {
+    if (fileId) {
+      updateContent(fileId, text)
+    }
+  }, [text, fileId])
 
   const handleDownload = () => {
     if (!text.trim()) {

@@ -21,6 +21,20 @@ import Run from '../pages/Run'
 import InternetExplorer from '../pages/InternetExplorer'
 import Resume from '../pages/Resume'
 import Challenge from '../pages/Challenge'
+import FolderWindow from './FolderWindow'
+import RecycleBinWindow from './RecycleBinWindow'
+import {
+  loadNodes,
+  createFile,
+  createFolder,
+  updatePosition,
+  renameNode,
+  deleteNode,
+  trashNode,
+  restoreNode,
+  emptyTrash,
+  moveNode
+} from '../utils/filesystem'
 
 // Order of the left-hand desktop icons, top to bottom.
 const DESKTOP_ICON_ORDER = ['about', 'projects', 'contact', 'resume', 'notepad', 'paint', 'challenge']
@@ -67,6 +81,8 @@ const Desktop = ({ openWindow, openWindows, closeWindow, minimizeWindow, maximiz
   })
   // Icons the user has manually dragged — these are exempt from layout reflow.
   const movedIcons = useRef(new Set())
+  // User-created filesystem nodes (files + folders), persisted in localStorage.
+  const [nodes, setNodes] = useState(loadNodes)
 
   // Keep the default icon layout responsive to the viewport size.
   useEffect(() => {
@@ -124,6 +140,91 @@ const Desktop = ({ openWindow, openWindows, closeWindow, minimizeWindow, maximiz
     }))
   }
 
+  // --- Filesystem (files + folders) ------------------------------------------
+  const handleNewFile = (parentId = null, position = null) => {
+    setNodes(createFile(parentId, position))
+  }
+
+  const handleNewFolder = (parentId = null, position = null) => {
+    setNodes(createFolder(parentId, position))
+  }
+
+  const openFile = (node) => {
+    openWindow(`doc-${node.id}`, node.name, 'Notepad', { fileId: node.id })
+  }
+
+  const openFolder = (node) => {
+    openWindow(`folder-${node.id}`, node.name, 'Folder', { folderId: node.id })
+  }
+
+  const openNode = (node) => {
+    if (node.type === 'folder') {
+      openFolder(node)
+    } else {
+      openFile(node)
+    }
+  }
+
+  const handleNodePositionChange = (id, x, y) => {
+    setNodes(updatePosition(id, x, y))
+  }
+
+  const handleNodeRename = (id, currentName) => {
+    const newName = prompt('Enter new name:', currentName)
+    if (newName && newName.trim()) {
+      setNodes(renameNode(id, newName.trim()))
+    }
+  }
+
+  // Deleting moves the item to the Recycle Bin (recoverable).
+  const handleNodeDelete = (id) => {
+    setNodes(trashNode(id))
+    // Close any window showing this node (or, for folders, its contents).
+    closeWindow(`doc-${id}`)
+    closeWindow(`folder-${id}`)
+  }
+
+  const handleRestoreNode = (id) => {
+    setNodes(restoreNode(id))
+  }
+
+  const handlePermanentlyDelete = (id) => {
+    if (confirm('Permanently delete this item? This cannot be undone.')) {
+      setNodes(deleteNode(id))
+    }
+  }
+
+  const handleEmptyRecycleBin = () => {
+    if (confirm('Permanently delete all items in the Recycle Bin? This cannot be undone.')) {
+      setNodes(emptyTrash())
+    }
+  }
+
+  const handleRecycleBinOpen = () => {
+    openWindow('recyclebin', 'Recycle Bin', 'RecycleBin')
+  }
+
+  // Where a desktop right-click "New" item should be created — under the cursor,
+  // offset so the icon centers there, clamped above the taskbar.
+  const desktopNewItemPosition = () => {
+    if (!desktopContextMenu) return null
+    const maxY = window.innerHeight - 40 - 90
+    return {
+      x: Math.max(8, desktopContextMenu.x - 24),
+      y: Math.max(8, Math.min(desktopContextMenu.y - 16, maxY))
+    }
+  }
+
+  // On drop, if the icon was released over a folder icon, move it inside.
+  const handleNodeDropToMove = (id, clientX, clientY) => {
+    const target = document.elementFromPoint(clientX, clientY)
+    const folderEl = target?.closest?.('[data-folder-id]')
+    const targetFolderId = folderEl?.getAttribute('data-folder-id')
+    if (targetFolderId && targetFolderId !== id) {
+      setNodes(moveNode(id, targetFolderId))
+    }
+  }
+
   const handleDesktopContextMenu = (e) => {
     // Only show context menu if clicking on desktop background, not on icons
     if (e.target === e.currentTarget || e.target.closest('.desktop-background')) {
@@ -150,17 +251,6 @@ const Desktop = ({ openWindow, openWindows, closeWindow, minimizeWindow, maximiz
     }
   }
 
-  const handleRecycleBinOpen = () => {
-    // Recycle bin typically opens a window showing deleted items
-    alert('Recycle Bin is empty')
-  }
-
-  const handleEmptyRecycleBin = () => {
-    if (confirm('Are you sure you want to permanently delete all items in the Recycle Bin?')) {
-      alert('Recycle Bin emptied')
-    }
-  }
-
   const desktopContextMenuItems = [
     { 
       label: 'Arrange Icons By', 
@@ -177,7 +267,7 @@ const Desktop = ({ openWindow, openWindows, closeWindow, minimizeWindow, maximiz
         { label: 'Align to Grid', onClick: () => {} }
       ]
     },
-    { label: 'Refresh', icon: '', onClick: () => window.location.reload() },
+    { label: 'Refresh', icon: '', onClick: () => {} },
     'separator',
     { label: 'Paste', icon: '', disabled: true },
     { label: 'Paste Shortcut', icon: '', disabled: true },
@@ -188,9 +278,9 @@ const Desktop = ({ openWindow, openWindows, closeWindow, minimizeWindow, maximiz
       icon: '',
       hasSubmenu: true,
       submenu: [
-        { label: 'Folder', icon: '/New Folder.ico', onClick: () => {} },
+        { label: 'Folder', icon: '/New Folder.ico', onClick: () => handleNewFolder(null, desktopNewItemPosition()) },
         { label: 'Shortcut', icon: '/Windows Explorer.ico', onClick: () => {} },
-        { label: 'Text Document', icon: '/My Documents.ico', onClick: () => {} },
+        { label: 'Text Document', icon: '/My Documents.ico', onClick: () => handleNewFile(null, desktopNewItemPosition()) },
         { label: 'Bitmap Image', icon: '/My Pictures.ico', onClick: () => {} },
         { label: 'Wave Sound', icon: '/Music Disk.ico', onClick: () => {} }
       ]
@@ -199,7 +289,7 @@ const Desktop = ({ openWindow, openWindows, closeWindow, minimizeWindow, maximiz
     { label: 'Properties', icon: '', onClick: () => alert('Desktop Properties') }
   ]
 
-  const renderWindowContent = (component) => {
+  const renderWindowContent = (component, props) => {
     switch(component) {
       case 'About':
         return <About />
@@ -208,7 +298,30 @@ const Desktop = ({ openWindow, openWindows, closeWindow, minimizeWindow, maximiz
       case 'Contact':
         return <Contact />
       case 'Notepad':
-        return <Notepad />
+        return <Notepad fileId={props?.fileId} />
+      case 'Folder':
+        return (
+          <FolderWindow
+            folderId={props?.folderId}
+            nodes={nodes}
+            onOpenNode={openNode}
+            onCreateFile={handleNewFile}
+            onCreateFolder={handleNewFolder}
+            onPositionChange={handleNodePositionChange}
+            onRename={handleNodeRename}
+            onDelete={handleNodeDelete}
+            onDropMove={handleNodeDropToMove}
+          />
+        )
+      case 'RecycleBin':
+        return (
+          <RecycleBinWindow
+            items={nodes.filter(n => n.trashed)}
+            onRestore={handleRestoreNode}
+            onDelete={handlePermanentlyDelete}
+            onEmpty={handleEmptyRecycleBin}
+          />
+        )
       case 'Paint':
         return <Paint />
       case 'MyDocuments':
@@ -337,6 +450,23 @@ const Desktop = ({ openWindow, openWindows, closeWindow, minimizeWindow, maximiz
         ]}
       />
 
+      {/* User-created files and folders that live on the desktop */}
+      {nodes.filter(n => n.parentId === null && !n.trashed).map(node => (
+        <DesktopIcon
+          key={node.id}
+          id={node.id}
+          icon={node.type === 'folder' ? '/New Folder.ico' : '📄'}
+          label={node.name}
+          position={node.position || { x: 130, y: 20 }}
+          isFolder={node.type === 'folder'}
+          onPositionChange={(x, y) => handleNodePositionChange(node.id, x, y)}
+          onClick={() => openNode(node)}
+          onRename={handleNodeRename}
+          onDelete={handleNodeDelete}
+          onDragEnd={handleNodeDropToMove}
+        />
+      ))}
+
       {/* Windows */}
       {openWindows.map(window => (
         !window.minimized && (
@@ -358,10 +488,10 @@ const Desktop = ({ openWindow, openWindows, closeWindow, minimizeWindow, maximiz
             }}
             isMaximized={window.maximized}
             onPositionChange={updateWindowPosition}
-            width={window.component === 'Paint' ? '900px' : window.component === 'Resume' ? '800px' : undefined}
-            height={window.component === 'Paint' ? '700px' : window.component === 'Resume' ? '600px' : undefined}
+            width={window.component === 'Paint' ? '900px' : window.component === 'Resume' ? '800px' : (window.component === 'Folder' || window.component === 'RecycleBin') ? '520px' : undefined}
+            height={window.component === 'Paint' ? '700px' : window.component === 'Resume' ? '600px' : (window.component === 'Folder' || window.component === 'RecycleBin') ? '380px' : undefined}
           >
-            {renderWindowContent(window.component)}
+            {renderWindowContent(window.component, window.props)}
           </Window>
         )
       ))}

@@ -179,7 +179,7 @@ const Window = ({ id, title, children, position, onClose, onMinimize, onMaximize
           minHeight: isMaximized ? 'calc(100% - 22px)' : '370px'
         }}
       >
-        <div className={`${id === 'resume' ? 'h-full p-0' : (id === 'control' || id === 'computer' || id === 'paint') ? 'h-full p-0' : 'p-4'}`}>
+        <div className={`${id === 'resume' ? 'h-full p-0' : (id === 'control' || id === 'computer' || id === 'paint' || id === 'recyclebin' || id.startsWith('folder-')) ? 'h-full p-0' : 'p-4'}`}>
           {children}
         </div>
       </div>

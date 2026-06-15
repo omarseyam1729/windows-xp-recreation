@@ -24,11 +24,11 @@ function App() {
     }
   }, [])
 
-  const openWindow = (id, title, component) => {
+  const openWindow = (id, title, component, props = null) => {
     if (!openWindows.find(w => w.id === id)) {
       // Resume, Projects, and Challenge always open maximized
       const shouldMaximize = component === 'Resume' || component === 'Projects' || component === 'Challenge'
-      setOpenWindows([...openWindows, { id, title, component, minimized: false, maximized: shouldMaximize }])
+      setOpenWindows([...openWindows, { id, title, component, props, minimized: false, maximized: shouldMaximize }])
     }
   }
 

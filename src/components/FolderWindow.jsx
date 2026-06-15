@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import DesktopIcon from './DesktopIcon'
 import ContextMenu from './ContextMenu'
+import useLongPress from '../hooks/useLongPress'
 
 // A free-drag canvas scoped to a single folder — conceptually a mini desktop.
 // All filesystem state lives in Desktop; this component just renders this
@@ -28,6 +29,12 @@ const FolderWindow = ({
     e.preventDefault()
     setContextMenu({ x: e.clientX, y: e.clientY })
   }
+
+  // Touch long-press on the empty canvas = right-click.
+  const canvasLongPress = useLongPress(
+    (x, y) => setContextMenu({ x, y }),
+    { filter: (e) => e.target === e.currentTarget }
+  )
 
   // Create the new item where the user right-clicked (canvas-local coords).
   const createAt = (create) => () => {
@@ -84,6 +91,10 @@ const FolderWindow = ({
         className="relative flex-1 overflow-hidden"
         style={{ background: '#FFFFFF' }}
         onContextMenu={handleContextMenu}
+        onPointerDown={canvasLongPress.onPointerDown}
+        onPointerMove={canvasLongPress.onPointerMove}
+        onPointerUp={canvasLongPress.onPointerUp}
+        onPointerCancel={canvasLongPress.onPointerCancel}
       >
         {children.map((node) => (
           <DesktopIcon

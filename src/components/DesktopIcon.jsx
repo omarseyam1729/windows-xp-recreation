@@ -10,14 +10,29 @@ const DesktopIcon = ({ id, icon, label, onClick, position, onPositionChange, onR
   const [contextMenu, setContextMenu] = useState(null)
   const iconRef = useRef(null)
   const hasMovedRef = useRef(false)
+  const startRef = useRef({ x: 0, y: 0 })
+  const pointerTypeRef = useRef('mouse')
+  const longPressRef = useRef(null)
+  const longPressFiredRef = useRef(false)
+
+  const MOVE_THRESHOLD = 6
 
   useEffect(() => {
     if (isDragging) {
-      const handleMouseMove = (e) => {
+      const handlePointerMove = (e) => {
         if (!iconRef.current) return
+
+        // Ignore sub-threshold jitter so a tap/click is never treated as a drag.
         if (!hasMovedRef.current) {
+          if (
+            Math.abs(e.clientX - startRef.current.x) < MOVE_THRESHOLD &&
+            Math.abs(e.clientY - startRef.current.y) < MOVE_THRESHOLD
+          ) {
+            return
+          }
           hasMovedRef.current = true
           setIsMoving(true)
+          if (longPressRef.current) clearTimeout(longPressRef.current)
         }
 
         const rect = iconRef.current.getBoundingClientRect()
@@ -46,39 +61,53 @@ const DesktopIcon = ({ id, icon, label, onClick, position, onPositionChange, onR
         onPositionChange(constrainedX, constrainedY)
       }
 
-      const handleMouseUp = (e) => {
+      const handlePointerUp = (e) => {
+        if (longPressRef.current) clearTimeout(longPressRef.current)
         setIsDragging(false)
         setIsMoving(false)
-        // Only treat this as a drop if the pointer actually moved, so a plain
-        // click never reparents the icon.
-        if (hasMovedRef.current && onDragEnd) {
-          onDragEnd(id, e.clientX, e.clientY)
+        if (longPressFiredRef.current) return // a context menu already opened
+        if (hasMovedRef.current) {
+          if (onDragEnd) onDragEnd(id, e.clientX, e.clientY)
+        } else if (pointerTypeRef.current === 'touch') {
+          // On touch a single tap opens (double-click is awkward on phones).
+          onClick()
         }
       }
 
-      window.addEventListener('mousemove', handleMouseMove)
-      window.addEventListener('mouseup', handleMouseUp)
+      window.addEventListener('pointermove', handlePointerMove)
+      window.addEventListener('pointerup', handlePointerUp)
+      window.addEventListener('pointercancel', handlePointerUp)
 
       return () => {
-        window.removeEventListener('mousemove', handleMouseMove)
-        window.removeEventListener('mouseup', handleMouseUp)
+        window.removeEventListener('pointermove', handlePointerMove)
+        window.removeEventListener('pointerup', handlePointerUp)
+        window.removeEventListener('pointercancel', handlePointerUp)
       }
     }
-  }, [isDragging, dragOffset, onPositionChange, containerRef, onDragEnd, id])
+  }, [isDragging, dragOffset, onPositionChange, containerRef, onDragEnd, id, onClick])
 
-  const handleMouseDown = (e) => {
-    // Only left-button drags; let right-click fall through to the context menu.
-    if (e.button !== 0) return
-    if (iconRef.current) {
-      const rect = iconRef.current.getBoundingClientRect()
-      setDragOffset({
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
-      })
-      hasMovedRef.current = false
-      // Start a potential drag. A plain click won't move the mouse, so the
-      // position only changes once the pointer actually moves.
-      setIsDragging(true)
+  const handlePointerDown = (e) => {
+    // Right mouse button falls through to the native contextmenu handler.
+    if (e.pointerType === 'mouse' && e.button !== 0) return
+    if (!iconRef.current) return
+
+    const rect = iconRef.current.getBoundingClientRect()
+    setDragOffset({ x: e.clientX - rect.left, y: e.clientY - rect.top })
+    startRef.current = { x: e.clientX, y: e.clientY }
+    pointerTypeRef.current = e.pointerType
+    hasMovedRef.current = false
+    longPressFiredRef.current = false
+    setIsDragging(true)
+
+    // Touch long-press opens the context menu (the touch equivalent of right-click).
+    if (e.pointerType === 'touch') {
+      const { x, y } = startRef.current
+      longPressRef.current = setTimeout(() => {
+        longPressFiredRef.current = true
+        setIsDragging(false)
+        setIsMoving(false)
+        setContextMenu({ x, y })
+      }, 500)
     }
   }
 
@@ -116,9 +145,13 @@ const DesktopIcon = ({ id, icon, label, onClick, position, onPositionChange, onR
         // Only while actively moving do we ignore pointer hits, so
         // elementFromPoint can detect a folder under the cursor for
         // drop-to-move. A plain click keeps pointer events so dblclick fires.
-        pointerEvents: isMoving ? 'none' : undefined
+        pointerEvents: isMoving ? 'none' : undefined,
+        // Let us own touch gestures (drag) instead of the browser scrolling,
+        // and suppress the long-press text-selection callout on mobile.
+        touchAction: 'none',
+        WebkitTouchCallout: 'none'
       }}
-      onMouseDown={handleMouseDown}
+      onPointerDown={handlePointerDown}
       onDoubleClick={handleDoubleClick}
       onContextMenu={handleContextMenu}
     >

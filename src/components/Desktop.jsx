@@ -36,6 +36,8 @@ import {
   emptyTrash,
   moveNode
 } from '../utils/filesystem'
+import useIsMobile from '../hooks/useIsMobile'
+import useLongPress from '../hooks/useLongPress'
 
 // Order of the left-hand desktop icons, top to bottom.
 const DESKTOP_ICON_ORDER = ['about', 'projects', 'contact', 'resume', 'notepad', 'paint', 'challenge', 'cmd']
@@ -84,6 +86,14 @@ const Desktop = ({ openWindow, openWindows, closeWindow, minimizeWindow, maximiz
   const movedIcons = useRef(new Set())
   // User-created filesystem nodes (files + folders), persisted in localStorage.
   const [nodes, setNodes] = useState(loadNodes)
+
+  const isMobile = useIsMobile()
+  // Touch long-press on empty desktop = right-click (only on the background,
+  // not on an icon).
+  const desktopLongPress = useLongPress(
+    (x, y) => setDesktopContextMenu({ x, y }),
+    { filter: (e) => e.target === e.currentTarget }
+  )
 
   // Keep the default icon layout responsive to the viewport size.
   useEffect(() => {
@@ -370,9 +380,13 @@ const Desktop = ({ openWindow, openWindows, closeWindow, minimizeWindow, maximiz
   }
 
   return (
-    <div 
-      className="relative w-full h-full overflow-hidden desktop-background xp-desktop-background" 
+    <div
+      className="relative w-full h-full overflow-hidden desktop-background xp-desktop-background"
       onContextMenu={handleDesktopContextMenu}
+      onPointerDown={desktopLongPress.onPointerDown}
+      onPointerMove={desktopLongPress.onPointerMove}
+      onPointerUp={desktopLongPress.onPointerUp}
+      onPointerCancel={desktopLongPress.onPointerCancel}
     >
       {/* Desktop Icons */}
       <DesktopIcon 
@@ -509,6 +523,7 @@ const Desktop = ({ openWindow, openWindows, closeWindow, minimizeWindow, maximiz
               maximizeWindow(window.id)
             }}
             isMaximized={window.maximized}
+            forceFullscreen={isMobile}
             onPositionChange={updateWindowPosition}
             width={window.component === 'Paint' ? '900px' : window.component === 'Resume' ? '800px' : window.component === 'CommandPrompt' ? '640px' : (window.component === 'Folder' || window.component === 'RecycleBin') ? '520px' : undefined}
             height={window.component === 'Paint' ? '700px' : window.component === 'Resume' ? '600px' : window.component === 'CommandPrompt' ? '400px' : (window.component === 'Folder' || window.component === 'RecycleBin') ? '380px' : undefined}

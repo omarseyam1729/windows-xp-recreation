@@ -1,12 +1,12 @@
 const StartButtonIcon = () => {
   return (
-    <svg 
-      width="35" 
-      height="35" 
-      viewBox="0 0 25 25" 
-      style={{ 
-        filter: 'drop-shadow(1px 1px 1px rgba(0,0,0,0.4))', 
-        marginRight: '5px',
+    <svg
+      width="26"
+      height="26"
+      viewBox="0 0 25 25"
+      style={{
+        filter: 'drop-shadow(1px 1px 1px rgba(0,0,0,0.4))',
+        marginRight: '1px',
         flexShrink: 0
       }}
     >

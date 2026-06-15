@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import DesktopIcon from './DesktopIcon'
 import Window from './Window'
 import ContextMenu from './ContextMenu'
@@ -22,34 +22,71 @@ import InternetExplorer from '../pages/InternetExplorer'
 import Resume from '../pages/Resume'
 import Challenge from '../pages/Challenge'
 
+// Order of the left-hand desktop icons, top to bottom.
+const DESKTOP_ICON_ORDER = ['about', 'projects', 'contact', 'resume', 'notepad', 'paint', 'challenge']
+
+// Lay the left-column icons out so they wrap into extra columns instead of
+// sliding under the taskbar on shorter viewports, and pin the recycle bin to the
+// top-right corner. Recomputed on mount and on every window resize.
+const computeDefaultIconPositions = (vw, vh) => {
+  const TOP = 16
+  const LEFT = 16
+  const COLUMN_WIDTH = 88
+  const ROW_HEIGHT = 92
+  const TASKBAR_HEIGHT = 40
+
+  const usableHeight = vh - TASKBAR_HEIGHT - TOP - 8
+  const perColumn = Math.max(1, Math.floor(usableHeight / ROW_HEIGHT))
+
+  const positions = {}
+  DESKTOP_ICON_ORDER.forEach((id, i) => {
+    const col = Math.floor(i / perColumn)
+    const row = i % perColumn
+    positions[id] = { x: LEFT + col * COLUMN_WIDTH, y: TOP + row * ROW_HEIGHT }
+  })
+
+  positions.recyclebin = {
+    x: Math.max(LEFT, vw - 80),
+    y: TOP
+  }
+
+  return positions
+}
+
+const getViewport = () => ({
+  vw: typeof window !== 'undefined' ? window.innerWidth : 1280,
+  vh: typeof window !== 'undefined' ? window.innerHeight : 720
+})
+
 const Desktop = ({ openWindow, openWindows, closeWindow, minimizeWindow, maximizeWindow }) => {
   const [windowPositions, setWindowPositions] = useState({})
   const [desktopContextMenu, setDesktopContextMenu] = useState(null)
-  const [iconPositions, setIconPositions] = useState({
-    'about': { x: 16, y: 16 },
-    'projects': { x: 16, y: 120 },
-    'contact': { x: 16, y: 224 },
-    'resume': { x: 16, y: 328 },
-    'notepad': { x: 16, y: 432 },
-    'paint': { x: 16, y: 536 },
-    'challenge': { x: 16, y: 640 },
-    'recyclebin': { x: 1200, y: 600 }
+  const [iconPositions, setIconPositions] = useState(() => {
+    const { vw, vh } = getViewport()
+    return computeDefaultIconPositions(vw, vh)
   })
+  // Icons the user has manually dragged — these are exempt from layout reflow.
+  const movedIcons = useRef(new Set())
 
-  // Initialize recycle bin position based on viewport size
+  // Keep the default icon layout responsive to the viewport size.
   useEffect(() => {
-    const recycleBinX = Math.max(1200, window.innerWidth - 100)
-    const recycleBinY = Math.max(600, window.innerHeight - 200)
-    setIconPositions(prev => {
-      // Only set if still at default position
-      if (prev['recyclebin']?.x === 1200 && prev['recyclebin']?.y === 600) {
-        return {
-          ...prev,
-          'recyclebin': { x: recycleBinX, y: recycleBinY }
-        }
-      }
-      return prev
-    })
+    const applyResponsiveLayout = () => {
+      const { vw, vh } = getViewport()
+      const defaults = computeDefaultIconPositions(vw, vh)
+      setIconPositions(prev => {
+        const next = { ...prev }
+        Object.keys(defaults).forEach(id => {
+          if (!movedIcons.current.has(id)) {
+            next[id] = defaults[id]
+          }
+        })
+        return next
+      })
+    }
+
+    applyResponsiveLayout()
+    window.addEventListener('resize', applyResponsiveLayout)
+    return () => window.removeEventListener('resize', applyResponsiveLayout)
   }, [])
 
   // Initialize positions for new windows
@@ -80,6 +117,7 @@ const Desktop = ({ openWindow, openWindows, closeWindow, minimizeWindow, maximiz
   }
 
   const updateIconPosition = (id, x, y) => {
+    movedIcons.current.add(id)
     setIconPositions(prev => ({
       ...prev,
       [id]: { x, y }

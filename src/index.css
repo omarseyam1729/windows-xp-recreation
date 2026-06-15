@@ -36,66 +36,106 @@
   }
   
   .xp-start-button {
-    height: 33px;
+    height: 32px;
     border-top-left-radius: 4px;
     border-bottom-left-radius: 4px;
-    border-top-right-radius: 10px;
-    border-bottom-right-radius: 10px;
-    padding: 0 15px 0 8px;
+    /* Elliptical bulge on the right — the signature XP shape */
+    border-top-right-radius: 20px 16px;
+    border-bottom-right-radius: 20px 16px;
+    padding: 0 22px 0 7px;
     border: none;
-    background: linear-gradient(to bottom, 
-      #3F803D 0%,
-      #85B84F 5%,
-      #85B84F 50%,
-      #5C8D3A 50%,
-      #3F6E2C 100%
+    /* Glossy lime highlight up top fading to forest green at the bottom */
+    background: linear-gradient(to bottom,
+      #45942f 0%,
+      #69b143 6%,
+      #93cc5e 13%,
+      #7fbe50 46%,
+      #5da438 51%,
+      #519a32 62%,
+      #3f8429 92%,
+      #357a24 100%
     );
     background-color: transparent;
-    box-shadow: 
-      inset 0px 2px 1px rgba(255, 255, 255, 0.4),
-      inset 0 -1px 2px rgba(0, 0, 0, 0.3);
+    box-shadow:
+      inset 0 2px 2px rgba(255, 255, 255, 0.5),
+      inset 2px 0 3px rgba(255, 255, 255, 0.25),
+      inset 0 -2px 3px rgba(0, 0, 0, 0.3),
+      inset -10px 0 16px rgba(0, 0, 0, 0.12);
     position: relative;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
     font-family: 'Franklin Gothic Medium', 'Franklin Gothic', Arial, sans-serif;
     font-size: 14px;
     font-weight: 700;
     font-style: italic;
     color: #FFFFFF;
     text-transform: lowercase;
-    text-shadow: 1px 1px 0px #3F5D38;
+    text-shadow: 1px 1px 1px rgba(22, 56, 22, 0.8);
     cursor: pointer;
     transition: all 120ms ease;
     overflow: visible;
   }
-  
+
+  /* Specular gloss across the top half */
+  .xp-start-button::before {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 3px;
+    right: 6px;
+    height: 42%;
+    border-radius: 4px 18px 18px 4px / 4px 14px 14px 4px;
+    background: linear-gradient(to bottom,
+      rgba(255, 255, 255, 0.5) 0%,
+      rgba(255, 255, 255, 0.12) 100%);
+    pointer-events: none;
+  }
+
   .xp-start-button svg {
     background-color: transparent;
+    position: relative;
+    z-index: 1;
   }
-  
+
+  .xp-start-button span {
+    position: relative;
+    z-index: 1;
+  }
+
   .xp-start-button:hover {
-    background: linear-gradient(to bottom, 
-      #4F904D 0%,
-      #95C85F 5%,
-      #95C85F 50%,
-      #6C9D4A 50%,
-      #4F7E3C 100%
+    background: linear-gradient(to bottom,
+      #4fa537 0%,
+      #74c14d 6%,
+      #9ed968 13%,
+      #8aca5a 46%,
+      #69b143 51%,
+      #5ca838 62%,
+      #498f30 92%,
+      #3f8a2b 100%
     );
   }
-  
+
   .xp-start-button:active,
   .xp-start-button-active {
-    background: linear-gradient(to bottom, 
-      #2F702D 0%,
-      #75A83F 5%,
-      #75A83F 50%,
-      #4C7D2A 50%,
-      #2F5E1C 100%
+    background: linear-gradient(to bottom,
+      #357a24 0%,
+      #4b9030 6%,
+      #6cae45 13%,
+      #5ea03a 46%,
+      #4a8c2f 51%,
+      #418229 62%,
+      #356f22 92%,
+      #2c6a1d 100%
     );
-    box-shadow: 
-      inset 0px 1px 1px rgba(255, 255, 255, 0.3),
-      inset 0 1px 2px rgba(0, 0, 0, 0.4);
+    box-shadow:
+      inset 0 2px 4px rgba(0, 0, 0, 0.35),
+      inset 0 -1px 1px rgba(255, 255, 255, 0.15);
+  }
+
+  .xp-start-button:active::before,
+  .xp-start-button-active::before {
+    opacity: 0.4;
   }
   
   
@@ -1561,10 +1601,111 @@
      * 
      * Current placeholder: Simple gradient matching Windows XP colors
      */
-     background-image: url('/bliss.jpg');;
+     background-image: url('/bliss.jpg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+  }
+
+  /* Windows XP Welcome / Logon Screen */
+  .xp-welcome-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    user-select: none;
+    opacity: 1;
+    transition: opacity 400ms ease-in-out;
+    font-family: 'Franklin Gothic Medium', 'Franklin Gothic', 'Tahoma', Arial, sans-serif;
+  }
+
+  .xp-welcome-fade {
+    opacity: 0;
+  }
+
+  /* Top solid dark-blue band */
+  .xp-welcome-top {
+    flex: 0 0 13%;
+    background: linear-gradient(to bottom,
+      #234dbb 0%,
+      #15349f 45%,
+      #0d2891 100%);
+  }
+
+  /* Bottom solid band, tinted indigo toward the corner */
+  .xp-welcome-bottom {
+    flex: 0 0 13%;
+    background: linear-gradient(125deg,
+      #16308f 0%,
+      #1b2c84 45%,
+      #392f7d 100%);
+  }
+
+  /* Horizontal divider lines */
+  .xp-welcome-divider {
+    flex-shrink: 0;
+    height: 3px;
+    width: 100%;
+  }
+
+  .xp-welcome-divider-top {
+    background: linear-gradient(to right,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(214, 226, 255, 0.55) 20%,
+      rgba(255, 255, 255, 0.9) 50%,
+      rgba(214, 226, 255, 0.55) 80%,
+      rgba(255, 255, 255, 0) 100%);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+  }
+
+  .xp-welcome-divider-bottom {
+    background: linear-gradient(to right,
+      rgba(232, 163, 61, 0) 0%,
+      rgba(232, 163, 61, 0.7) 15%,
+      #ffd479 50%,
+      rgba(232, 163, 61, 0.7) 85%,
+      rgba(232, 163, 61, 0) 100%);
+    box-shadow: 0 0 8px rgba(255, 197, 102, 0.45);
+  }
+
+  /* Middle periwinkle section */
+  .xp-welcome-middle {
+    position: relative;
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: linear-gradient(to bottom,
+      #6f8fdb 0%,
+      #5d7ed3 45%,
+      #5277cd 100%);
+  }
+
+  /* Soft light source in the top-left corner */
+  .xp-welcome-glow {
+    position: absolute;
+    top: -12%;
+    left: -6%;
+    width: 46%;
+    height: 90%;
+    background: radial-gradient(ellipse at center,
+      rgba(255, 255, 255, 0.55) 0%,
+      rgba(255, 255, 255, 0.18) 38%,
+      rgba(255, 255, 255, 0) 70%);
+    pointer-events: none;
+  }
+
+  .xp-welcome-text {
+    position: relative;
+    font-size: 60px;
+    font-weight: 700;
+    font-style: italic;
+    color: #ffffff;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.35);
+    letter-spacing: -1px;
   }
 }
 

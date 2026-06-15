@@ -1,96 +1,53 @@
-# Windows XP Portfolio
+# Windows XP — Web Recreation
 
-A pixel-perfect Windows XP-themed portfolio built with React 19, Vite, and Tailwind CSS.
+A Windows XP desktop **recreated in the browser** with React 19, Vite, and Tailwind CSS.
 
-**Note:** This entire portfolio was vibe coded - built with creative flow and intuitive development rather than strict planning. Every component, interaction, and pixel was crafted in the moment.
+> It's a *recreation / simulation*, not an emulator — there's no x86 or a real Windows
+> image. It's a hand-built XP-style desktop environment that runs entirely client-side.
 
 ## Features
 
-- 🪟 Classic Windows XP desktop interface
-- 📱 Draggable windows with minimize/maximize/close functionality
-- 🎨 Pixel-perfect Windows XP styling
-- 🖱️ Interactive desktop icons
-- 📋 Start menu navigation
-- 📊 Taskbar with window management
+- 🪟 Classic XP desktop, taskbar, and Start menu — with the "Welcome" boot screen
+- 🗂️ A working **file system** (folders + text files, nesting, drag-to-move) persisted in `localStorage`
+- 🗒️ **Notepad** that reads/writes those files
+- ⬛ A **Command Prompt** that actually traverses the file system (`dir`, `cd`, `type`, `mkdir`, `del`, `tree`, …)
+- 🗑️ A **recoverable Recycle Bin** (restore / empty)
+- 🎨 Paint, a coprime/π Monte-Carlo toy, a faux Internet Explorer, Control Panel, and more
+- 🖱️ Draggable icons & windows, right-click context menus
+- 📱 **Touch-friendly**: single-tap to open, long-press for right-click, fullscreen windows on phones
 
 ## Getting Started
 
-### Prerequisites
-
-- Node.js (v16 or higher)
-- npm or yarn
-
-### Installation
-
-1. Install dependencies:
 ```bash
 npm install
+npm run dev      # http://localhost:5173
+npm run build    # outputs to dist/
 ```
 
-2. Start the development server:
-```bash
-npm run dev
-```
+## How the file system works
 
-3. Open your browser and navigate to `http://localhost:5173`
-
-### Build for Production
-
-```bash
-npm run build
-```
-
-The built files will be in the `dist` directory.
+A flat array of nodes (`{ id, type, name, parentId, content, position }`) in `localStorage`
+under the key `xp-filesystem`; the tree is implicit via `parentId` (`null` = desktop). See
+[`src/utils/filesystem.js`](src/utils/filesystem.js). Notepad and the Command Prompt read the
+live list and mutate it through the same helpers, so the desktop and every open window stay in
+sync. Data is per-browser and best-effort — clearing site data wipes it.
 
 ## Project Structure
 
 ```
-windows-xp-folio/
-├── src/
-│   ├── components/      # Windows XP UI components
-│   │   ├── Desktop.jsx
-│   │   ├── DesktopIcon.jsx
-│   │   ├── StartMenu.jsx
-│   │   ├── Taskbar.jsx
-│   │   └── Window.jsx
-│   ├── pages/          # Portfolio pages
-│   │   ├── About.jsx
-│   │   ├── Projects.jsx
-│   │   └── Contact.jsx
-│   ├── App.jsx         # Main app component
-│   ├── main.jsx        # React entry point
-│   └── index.css       # Global styles
-├── index.html
-├── package.json
-├── tailwind.config.js
-└── vite.config.js
+src/
+├── components/   # Desktop, Window, Taskbar, StartMenu, FolderWindow, RecycleBinWindow, ...
+├── pages/        # The "apps": Notepad, Paint, CommandPrompt, MyComputer, ControlPanel, ...
+├── hooks/        # useIsMobile, useLongPress
+├── utils/        # filesystem.js (the localStorage file system)
+├── App.jsx
+└── index.css
 ```
 
-## Customization
+## Technologies
 
-### Update Portfolio Content
-
-Edit the files in `src/pages/`:
-- `About.jsx` - Your about section
-- `Projects.jsx` - Your projects showcase
-- `Contact.jsx` - Your contact information
-
-### Windows XP Colors
-
-The Windows XP color palette is defined in `tailwind.config.js`. You can customize colors there.
-
-## Technologies Used
-
-- **React 19** - Latest React with improved performance and new features
-- **Vite** - Lightning-fast build tool and dev server
-- **Tailwind CSS** - Utility-first CSS framework for rapid UI development
-- **React Router DOM** - Declarative routing for React applications
-
-## Development Philosophy
-
-This portfolio was **entirely vibe coded** - meaning it was built through creative flow, intuitive decision-making, and spontaneous implementation rather than rigid planning. Every feature, from draggable icons to the Paint app, emerged organically during development. The codebase reflects a natural, iterative approach to building something fun and nostalgic.
+- **React 19**, **Vite**, **Tailwind CSS**
 
 ## License
 
 MIT
-

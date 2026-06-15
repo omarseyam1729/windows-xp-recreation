@@ -3,9 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Desktop from './components/Desktop'
 import Taskbar from './components/Taskbar'
 import WelcomeScreen from './components/WelcomeScreen'
-import About from './pages/About'
-import Projects from './pages/Projects'
-import Contact from './pages/Contact'
 
 function App() {
   const [openWindows, setOpenWindows] = useState([])
@@ -26,8 +23,8 @@ function App() {
 
   const openWindow = (id, title, component, props = null) => {
     if (!openWindows.find(w => w.id === id)) {
-      // Resume, Projects, and Challenge always open maximized
-      const shouldMaximize = component === 'Resume' || component === 'Projects' || component === 'Challenge'
+      // Challenge always opens maximized
+      const shouldMaximize = component === 'Challenge'
       setOpenWindows([...openWindows, { id, title, component, props, minimized: false, maximized: shouldMaximize }])
     }
   }
@@ -45,8 +42,8 @@ function App() {
   const maximizeWindow = (id) => {
     setOpenWindows(openWindows.map(w => {
       if (w.id === id) {
-        // Resume, Projects, and Challenge should always stay maximized
-        if (w.component === 'Resume' || w.component === 'Projects' || w.component === 'Challenge') {
+        // Challenge should always stay maximized
+        if (w.component === 'Challenge') {
           return { ...w, maximized: true }
         }
         return { ...w, maximized: !w.maximized }

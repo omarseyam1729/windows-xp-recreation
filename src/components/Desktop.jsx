@@ -2,9 +2,6 @@ import { useState, useEffect, useRef } from 'react'
 import DesktopIcon from './DesktopIcon'
 import Window from './Window'
 import ContextMenu from './ContextMenu'
-import About from '../pages/About'
-import Projects from '../pages/Projects'
-import Contact from '../pages/Contact'
 import Notepad from '../pages/Notepad'
 import Paint from '../pages/Paint'
 import MyDocuments from '../pages/MyDocuments'
@@ -19,7 +16,6 @@ import HelpAndSupport from '../pages/HelpAndSupport'
 import Search from '../pages/Search'
 import Run from '../pages/Run'
 import InternetExplorer from '../pages/InternetExplorer'
-import Resume from '../pages/Resume'
 import Challenge from '../pages/Challenge'
 import CommandPrompt from '../pages/CommandPrompt'
 import FolderWindow from './FolderWindow'
@@ -40,7 +36,7 @@ import useIsMobile from '../hooks/useIsMobile'
 import useLongPress from '../hooks/useLongPress'
 
 // Order of the left-hand desktop icons, top to bottom.
-const DESKTOP_ICON_ORDER = ['about', 'projects', 'contact', 'resume', 'notepad', 'paint', 'challenge', 'cmd']
+const DESKTOP_ICON_ORDER = ['notepad', 'paint', 'challenge', 'cmd']
 
 // Lay the left-column icons out so they wrap into extra columns instead of
 // sliding under the taskbar on shorter viewports, and pin the recycle bin to the
@@ -302,12 +298,6 @@ const Desktop = ({ openWindow, openWindows, closeWindow, minimizeWindow, maximiz
 
   const renderWindowContent = (component, props) => {
     switch(component) {
-      case 'About':
-        return <About />
-      case 'Projects':
-        return <Projects />
-      case 'Contact':
-        return <Contact />
       case 'Notepad':
         return <Notepad fileId={props?.fileId} />
       case 'Folder':
@@ -370,8 +360,6 @@ const Desktop = ({ openWindow, openWindows, closeWindow, minimizeWindow, maximiz
         return <Run />
       case 'InternetExplorer':
         return <InternetExplorer />
-      case 'Resume':
-        return <Resume />
       case 'Challenge':
         return <Challenge />
       default:
@@ -389,47 +377,7 @@ const Desktop = ({ openWindow, openWindows, closeWindow, minimizeWindow, maximiz
       onPointerCancel={desktopLongPress.onPointerCancel}
     >
       {/* Desktop Icons */}
-      <DesktopIcon 
-        id="about"
-        icon="/My Documents.ico"
-        label="About Me"
-        position={iconPositions['about'] || { x: 16, y: 16 }}
-        onPositionChange={(x, y) => updateIconPosition('about', x, y)}
-        onClick={() => handleIconClick('about', 'About Me', 'About')}
-        onRename={handleIconRename}
-        onDelete={handleIconDelete}
-      />
-      <DesktopIcon 
-        id="projects"
-        icon="/Open Folder.ico"
-        label="Projects"
-        position={iconPositions['projects'] || { x: 16, y: 120 }}
-        onPositionChange={(x, y) => updateIconPosition('projects', x, y)}
-        onClick={() => handleIconClick('projects', 'Projects', 'Projects')}
-        onRename={handleIconRename}
-        onDelete={handleIconDelete}
-      />
-      <DesktopIcon 
-        id="contact"
-        icon="/My Documents.ico"
-        label="Contact"
-        position={iconPositions['contact'] || { x: 16, y: 224 }}
-        onPositionChange={(x, y) => updateIconPosition('contact', x, y)}
-        onClick={() => handleIconClick('contact', 'Contact', 'Contact')}
-        onRename={handleIconRename}
-        onDelete={handleIconDelete}
-      />
-      <DesktopIcon 
-        id="resume"
-        icon="/My Documents.ico"
-        label="Resume"
-        position={iconPositions['resume'] || { x: 16, y: 328 }}
-        onPositionChange={(x, y) => updateIconPosition('resume', x, y)}
-        onClick={() => handleIconClick('resume', 'Resume', 'Resume')}
-        onRename={handleIconRename}
-        onDelete={handleIconDelete}
-      />
-      <DesktopIcon 
+      <DesktopIcon
         id="notepad"
         icon="📝"
         label="Notepad"
@@ -525,8 +473,8 @@ const Desktop = ({ openWindow, openWindows, closeWindow, minimizeWindow, maximiz
             isMaximized={window.maximized}
             forceFullscreen={isMobile}
             onPositionChange={updateWindowPosition}
-            width={window.component === 'Paint' ? '900px' : window.component === 'Resume' ? '800px' : window.component === 'CommandPrompt' ? '640px' : (window.component === 'Folder' || window.component === 'RecycleBin') ? '520px' : undefined}
-            height={window.component === 'Paint' ? '700px' : window.component === 'Resume' ? '600px' : window.component === 'CommandPrompt' ? '400px' : (window.component === 'Folder' || window.component === 'RecycleBin') ? '380px' : undefined}
+            width={window.component === 'Paint' ? '900px' : window.component === 'CommandPrompt' ? '640px' : (window.component === 'Folder' || window.component === 'RecycleBin') ? '520px' : undefined}
+            height={window.component === 'Paint' ? '700px' : window.component === 'CommandPrompt' ? '400px' : (window.component === 'Folder' || window.component === 'RecycleBin') ? '380px' : undefined}
           >
             {renderWindowContent(window.component, window.props)}
           </Window>

@@ -1,8 +1,9 @@
 const StartMenu = ({ onClose, openWindows, openWindow }) => {
   const leftColumnItems = [
-    { id: 'about', label: 'About Me', icon: '/My Documents.ico', component: 'About' },
-    { id: 'projects', label: 'Projects', icon: '/Open Folder.ico', component: 'Projects' },
-    { id: 'contact', label: 'Contact', icon: '/My Documents.ico', component: 'Contact' },
+    { id: 'internet', label: 'Internet Explorer', icon: '/Folders with Earth.ico', component: 'InternetExplorer' },
+    { id: 'cmd', label: 'Command Prompt', icon: '/cmd.svg', component: 'CommandPrompt' },
+    { id: 'notepad', label: 'Notepad', icon: '📝', component: 'Notepad' },
+    { id: 'paint', label: 'Paint', icon: '🎨', component: 'Paint' },
   ]
 
   const rightColumnItems = [
@@ -17,9 +18,6 @@ const StartMenu = ({ onClose, openWindows, openWindow }) => {
     { id: 'help', label: 'Help and Support', icon: '/Folder Options.ico', component: 'HelpAndSupport' },
     { id: 'search', label: 'Search', icon: '/Windows Explorer.ico', component: 'Search' },
     { id: 'run', label: 'Run...', icon: '/Windows Explorer.ico', component: 'Run' },
-    { id: 'internet', label: 'Internet Explorer', icon: '/Folders with Earth.ico', component: 'InternetExplorer' },
-    { id: 'notepad', label: 'Notepad', icon: '📝', component: 'Notepad' },
-    { id: 'paint', label: 'Paint', icon: '🎨', component: 'Paint' },
   ]
 
   const handleMenuItemClick = (id, label, component) => {
@@ -34,7 +32,7 @@ const StartMenu = ({ onClose, openWindows, openWindow }) => {
       {/* Header Section */}
       <div className="xp-start-menu-header">
         <div className="xp-user-avatar">👤</div>
-        <span className="xp-username">Seyam Omar</span>
+        <span className="xp-username">User</span>
       </div>
 
       {/* Body Section - Two Columns */}

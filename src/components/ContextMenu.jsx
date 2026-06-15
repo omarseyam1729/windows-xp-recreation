@@ -57,7 +57,7 @@ const ContextMenu = ({ x, y, items, onClose }) => {
   return (
     <div
       ref={menuRef}
-      className="absolute xp-window-shadow z-[9999] min-w-[180px]"
+      className="fixed xp-window-shadow z-[9999] min-w-[180px]"
       style={{
         left: `${x}px`,
         top: `${y}px`,

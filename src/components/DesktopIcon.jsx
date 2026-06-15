@@ -6,7 +6,6 @@ const DesktopIcon = ({ id, icon, label, onClick, position, onPositionChange, onR
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
   const [contextMenu, setContextMenu] = useState(null)
   const iconRef = useRef(null)
-  const clickTimeoutRef = useRef(null)
 
   useEffect(() => {
     if (isDragging) {
@@ -29,11 +28,6 @@ const DesktopIcon = ({ id, icon, label, onClick, position, onPositionChange, onR
 
       const handleMouseUp = () => {
         setIsDragging(false)
-        // Clear any pending click
-        if (clickTimeoutRef.current) {
-          clearTimeout(clickTimeoutRef.current)
-          clickTimeoutRef.current = null
-        }
       }
 
       window.addEventListener('mousemove', handleMouseMove)
@@ -47,29 +41,22 @@ const DesktopIcon = ({ id, icon, label, onClick, position, onPositionChange, onR
   }, [isDragging, dragOffset, onPositionChange])
 
   const handleMouseDown = (e) => {
+    // Only left-button drags; let right-click fall through to the context menu.
+    if (e.button !== 0) return
     if (iconRef.current) {
       const rect = iconRef.current.getBoundingClientRect()
       setDragOffset({
         x: e.clientX - rect.left,
         y: e.clientY - rect.top
       })
+      // Start a potential drag. A plain click won't move the mouse, so the
+      // position only changes once the pointer actually moves.
       setIsDragging(true)
-      
-      // Set a timeout for single click (if not dragging)
-      clickTimeoutRef.current = setTimeout(() => {
-        if (!isDragging) {
-          onClick()
-        }
-      }, 200)
     }
   }
 
   const handleDoubleClick = (e) => {
     e.preventDefault()
-    if (clickTimeoutRef.current) {
-      clearTimeout(clickTimeoutRef.current)
-      clickTimeoutRef.current = null
-    }
     onClick()
   }
 
